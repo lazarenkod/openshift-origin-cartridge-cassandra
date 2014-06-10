@@ -1,19 +1,12 @@
 Name: cassandra
 Cartridge-Short-Name: CASSANDRA
 Architecture: noarch
-<<<<<<< HEAD
+
 Display-Name: Cassandra Database 2.0.8
 Description: "Cassandra is a multi-user, multi-threaded NoSQL database server."
 Version: '2.0.8'
 Versions: [2.0.8]
 Cartridge-Version: 0.0.2
-=======
-Display-Name: Cassandra Database 1.2.5
-Description: "Cassandra is a multi-user, multi-threaded NoSQL database server."
-Version: '1.2.5'
-Versions: [1.2.5]
-Cartridge-Version: 0.0.1
->>>>>>> adc5b0efe9a078ebebd59dd32390f957119200a9
 Cartridge-Vendor: rc
 License: GPL
 Vendor: Oracle
@@ -22,11 +15,7 @@ Categories:
   - database
   - embedded
 Website: http://cassandra.apache.org
-<<<<<<< HEAD
-Source-Url: https://github.com/jelastic-public-cartridges/openshift-origin-cartridge-cassandra.git
-=======
 Source-Url: https://github.com/lazarenkod/openshift-origin-cartridge-cassandra.git
->>>>>>> adc5b0efe9a078ebebd59dd32390f957119200a9
 Help-Topics:
   - "Building with Cassandra" : http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
 Cart-Data:
@@ -43,33 +32,22 @@ Cart-Data:
     Type: cart_data
     Description: "Cassandra DB connection URL"
 Provides:
-<<<<<<< HEAD
   - cassandra-2.0.8
-=======
-  - cassandra-1.2.5
->>>>>>> adc5b0efe9a078ebebd59dd32390f957119200a9
   - cassandra 
   - cassandra-singleton-master
 Publishes:
   publish-db-connection-info:
     Type: "ENV:NET_TCP:db:connection-info"
-<<<<<<< HEAD
 Subscribes:
   reset-password-info:
     Type: "FILESYSTEM:reset-password"
     Required: false    
-=======
->>>>>>> adc5b0efe9a078ebebd59dd32390f957119200a9
 Scaling:
   Min: 1
   Max: 1
 Endpoints:
   - Private-IP-Name:   DB_HOST
     Private-Port-Name: DB_PORT
-<<<<<<< HEAD
     Private-Port:      9160
-=======
-    Private-Port:      19160
->>>>>>> adc5b0efe9a078ebebd59dd32390f957119200a9
     Public-Port-Name:  DB_PROXY_PORT
 Install-Build-Required: false
