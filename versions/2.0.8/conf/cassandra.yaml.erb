@@ -21,7 +21,7 @@ cluster_name: '<%= ENV['OPENSHIFT_APP_NAME'] %>'
 #
 # If you already have a cluster with 1 token per node, and wish to migrate to 
 # multiple tokens per node, see http://wiki.apache.org/cassandra/Operations
-# num_tokens: 256
+num_tokens: 256
 
 # If you haven't specified num_tokens, or have set it to the default of 1 then
 # you should always specify InitialToken when setting up a production
@@ -62,7 +62,7 @@ max_hints_delivery_threads: 2
 # - PasswordAuthenticator relies on username/password pairs to authenticate
 #   users. It keeps usernames and hashed passwords in system_auth.credentials table.
 #   Please increase system_auth keyspace replication factor if you use this authenticator.
-authenticator: org.apache.cassandra.auth.AllowAllAuthenticator
+authenticator: AllowAllAuthenticator
 
 # Authorization backend, implementing IAuthorizer; used to limit access/provide permissions
 # Out of the box, Cassandra provides org.apache.cassandra.auth.{AllowAllAuthorizer,
@@ -71,7 +71,7 @@ authenticator: org.apache.cassandra.auth.AllowAllAuthenticator
 # - AllowAllAuthorizer allows any action to any user - set it to disable authorization.
 # - CassandraAuthorizer stores permissions in system_auth.permissions table. Please
 #   increase system_auth keyspace replication factor if you use this authorizer.
-authorizer: org.apache.cassandra.auth.AllowAllAuthorizer
+authorizer: AllowAllAuthorizer
 
 # Validity period for permissions cache (fetching permissions can be an
 # expensive operation depending on the authorizer, CassandraAuthorizer is
@@ -228,7 +228,7 @@ seed_provider:
       parameters:
           # seeds is actually a comma-delimited list of addresses.
           # Ex: "<ip1>,<ip2>,<ip3>"
-          - seeds: "<%= ENV['OPENSHIFT_CASSANDRA_DB_HOST'] %>"
+          - seeds: "<%= ENV['J_OPENSHIFT_CASSANDRA_DB_HOST'] %>"
 
 # emergency pressure valve: each time heap usage after a full (CMS)
 # garbage collection is above this fraction of the max, Cassandra will
@@ -355,7 +355,7 @@ rpc_address: <%= ENV['OPENSHIFT_CASSANDRA_DB_HOST'] %>
 rpc_port: <%= ENV['OPENSHIFT_CASSANDRA_DB_PORT'] %>
 
 # enable or disable keepalive on rpc connections
-rpc_keepalive: false
+rpc_keepalive: true
 
 # Cassandra provides three out-of-the-box options for the RPC Server:
 #
@@ -430,6 +430,17 @@ snapshot_before_compaction: false
 # lose data on truncation or drop.
 auto_snapshot: true
 
+# When executing a scan, within or across a partition, we need to keep the
+# tombstones seen in memory so we can return them to the coordinator, which
+# will use them to make sure other replicas also know about the deleted rows.
+# With workloads that generate a lot of tombstones, this can cause performance
+# problems and even exaust the server heap.
+# (http://www.datastax.com/dev/blog/cassandra-anti-patterns-queues-and-queue-like-datasets)
+# Adjust the thresholds here if you understand the dangers and want to
+# scan more tombstones anyway.  These thresholds may also be adjusted at runtime
+# using the StorageService mbean.
+tombstone_warn_threshold: 1000
+tombstone_failure_threshold: 100000
 # Add column indexes to a row after its contents reach this size.
 # Increase if your column values are large, or if you have a very large
 # number of columns.  The competing causes are, Cassandra has to
@@ -438,6 +449,9 @@ auto_snapshot: true
 # the index data is read for each access, so you don't want to generate
 # that wastefully either.
 column_index_size_in_kb: 64
+# Log WARN on any batch size exceeding this value. 5kb per batch by default.
+# Caution should be taken on increasing the size of this threshold as it can lead to node instability.
+batch_size_warn_threshold_in_kb: 5
 
 # Size limit for rows being compacted in memory.  Larger rows will spill
 # over to disk and use a slower two-pass compaction process.  A message
@@ -638,6 +652,7 @@ index_interval: 128
 # Default settings are TLS v1, RSA 1024-bit keys (it is imperative that
 # users generate their own keys) TLS_RSA_WITH_AES_128_CBC_SHA as the cipher
 # suite for authentication, key exchange and encryption of the actual data transfers.
+# Use the DHE/ECDHE ciphers if running in FIPS 140 compliant mode.
 # NOTE: No custom encryption options are enabled at the moment
 # The available internode options are : all, none, dc, rack
 #
@@ -658,7 +673,7 @@ server_encryption_options:
     # protocol: TLS
     # algorithm: SunX509
     # store_type: JKS
-    # cipher_suites: [TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA]
+    # cipher_suites: [TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA]
     # require_client_auth: false
 
 # enable or disable client/server encryption.
@@ -674,7 +689,7 @@ client_encryption_options:
     # protocol: TLS
     # algorithm: SunX509
     # store_type: JKS
-    # cipher_suites: [TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA]
+    # cipher_suites: [TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA]
 
 # internode_compression controls whether traffic between nodes is
 # compressed.
@@ -687,4 +702,9 @@ internode_compression: all
 # Disabling it will result in larger (but fewer) network packets being sent,
 # reducing overhead from the TCP protocol itself, at the cost of increasing
 # latency if you block for cross-datacenter responses.
-inter_dc_tcp_nodelay: true
+inter_dc_tcp_nodelay: false
+# Enable or disable kernel page cache preheating from contents of the key cache after compaction.
+# When enabled it would preheat only first "page" (4KB) of each row to optimize
+# for sequential access. Note: This could be harmful for fat rows, see CASSANDRA-4937
+# for further details on that topic.
+preheat_kernel_page_cache: false
