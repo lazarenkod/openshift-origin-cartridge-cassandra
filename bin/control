@@ -23,7 +23,11 @@ function is_running {
 # Start and block until it comes up.
 function start {
   if ! is_running; then
+<<<<<<< HEAD
+    $OPENSHIFT_CASSANDRA_DIR/versions/2.0.8/bin/cassandra -p $OPENSHIFT_CASSANDRA_DIR/cassandra/pid/cassandra.pid
+=======
     $OPENSHIFT_CASSANDRA_DIR/versions/1.2.5/bin/cassandra -p $OPENSHIFT_CASSANDRA_DIR/cassandra/pid/cassandra.pid
+>>>>>>> adc5b0efe9a078ebebd59dd32390f957119200a9
   else
     echo "Cassandra already running" 1>&2
   fi
