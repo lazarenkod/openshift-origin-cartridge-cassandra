@@ -22,7 +22,6 @@ function is_running {
 # TODO: source user hooks?
 # Start and block until it comes up.
 function start {
-  return 0;
   if ! is_running; then
     $OPENSHIFT_CASSANDRA_DIR/versions/2.0.8/bin/cassandra -p $OPENSHIFT_CASSANDRA_DIR/cassandra/pid/cassandra.pid
   else
